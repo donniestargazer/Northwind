@@ -366,3 +366,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Northwind/appsettings.json
+/Northwind/appsettings.Development.json
