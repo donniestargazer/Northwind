@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Northwind.Models;
+using Northwind.ViewModels.Order;
 
 namespace Northwind.Controllers
 {
@@ -21,8 +22,17 @@ namespace Northwind.Controllers
         // GET: Orders
         public async Task<IActionResult> Index()
         {
-            var northwindContext = _context.Orders.Include(o => o.Customer).Include(o => o.Employee).Include(o => o.ShipViaNavigation);
-            return View(await northwindContext.ToListAsync());
+            List<VMIndex> OrderList 
+                = await (from o in _context.Orders
+                         select new VMIndex
+                         {
+                             OrderId = o.OrderId,
+                             OrderDate = o.OrderDate,
+                             Freight = o.Freight,
+                             ShipName = o.ShipName,
+                             ShipCountry = o.ShipCountry
+                         }).ToListAsync();
+            return View(OrderList);
         }
 
         // GET: Orders/Details/5
