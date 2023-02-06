@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -97,10 +98,28 @@ namespace Northwind.Controllers
             {
                 return NotFound();
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", order.CustomerId);
-            ViewData["EmployeeId"] = new SelectList(_context.Employees, "EmployeeId", "EmployeeId", order.EmployeeId);
-            ViewData["ShipVia"] = new SelectList(_context.Shippers, "ShipperId", "ShipperId", order.ShipVia);
-            return View(order);
+
+            VMEdit vmEdit = new VMEdit()
+                            {
+                                OrderId = order.OrderId,
+                                CustomerId = order.CustomerId,
+                                EmployeeId = order.EmployeeId,
+                                OrderDate = order.OrderDate,
+                                RequiredDate = order.RequiredDate,
+                                ShippedDate = order.ShippedDate,
+                                ShipVia = order.ShipVia,
+                                Freight = order.Freight,
+                                ShipAddress = order.ShipAddress,
+                                ShipCity = order.ShipCity,
+                                ShipRegion = order.ShipRegion,
+                                ShipPostalCode = order.ShipPostalCode,
+                                ShipCountry = order.ShipCountry
+                            };
+
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CompanyName", vmEdit.CustomerId); //CompanyName 對應 ShipName
+            //ViewData["EmployeeId"] = new SelectList(_context.Employees, "EmployeeId", "EmployeeId", order.EmployeeId); 人名分為 名(First Name) 與 姓(Last Name)，顯示上有困難
+            ViewData["ShipVia"] = new SelectList(_context.Shippers, "ShipperId", "CompanyName", vmEdit.ShipVia);
+            return View(vmEdit);
         }
 
         // POST: Orders/Edit/5
@@ -108,15 +127,36 @@ namespace Northwind.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OrderId,CustomerId,EmployeeId,OrderDate,RequiredDate,ShippedDate,ShipVia,Freight,ShipName,ShipAddress,ShipCity,ShipRegion,ShipPostalCode,ShipCountry")] Order order)
+        public async Task<IActionResult> Edit(int id, [Bind("OrderId,CustomerId,EmployeeId,OrderDate,RequiredDate,ShippedDate,ShipVia,Freight,ShipAddress,ShipCity,ShipRegion,ShipPostalCode,ShipCountry")] VMEdit vmEdit)
         {
-            if (id != order.OrderId)
+            if (id != vmEdit.OrderId)
             {
                 return NotFound();
             }
-
+            
             if (ModelState.IsValid)
             {
+
+                Customer customer = _context.Customers.Where(c => c.CustomerId == vmEdit.CustomerId).FirstOrDefault();
+
+                Order order = new Order
+                {
+                    OrderId = vmEdit.OrderId,
+                    CustomerId = vmEdit.CustomerId,
+                    EmployeeId = vmEdit.EmployeeId,
+                    OrderDate = vmEdit.OrderDate,
+                    RequiredDate = vmEdit.RequiredDate,
+                    ShippedDate = vmEdit.ShippedDate,
+                    ShipVia = vmEdit.ShipVia,
+                    Freight = vmEdit.Freight,
+                    ShipName = customer.CompanyName,
+                    ShipAddress = vmEdit.ShipAddress,
+                    ShipCity = vmEdit.ShipCity,
+                    ShipRegion = vmEdit.ShipRegion,
+                    ShipPostalCode = vmEdit.ShipPostalCode,
+                    ShipCountry = vmEdit.ShipCountry
+                };
+
                 try
                 {
                     _context.Update(order);
@@ -135,10 +175,11 @@ namespace Northwind.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", order.CustomerId);
-            ViewData["EmployeeId"] = new SelectList(_context.Employees, "EmployeeId", "EmployeeId", order.EmployeeId);
-            ViewData["ShipVia"] = new SelectList(_context.Shippers, "ShipperId", "ShipperId", order.ShipVia);
-            return View(order);
+
+            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CompanyName", vmEdit.CustomerId); //CompanyName 對應 ShipName
+            //ViewData["EmployeeId"] = new SelectList(_context.Employees, "EmployeeId", "EmployeeId", order.EmployeeId); 人名分為 名(First Name) 與 姓(Last Name)，顯示上有困難
+            ViewData["ShipVia"] = new SelectList(_context.Shippers, "ShipperId", "CompanyName", vmEdit.ShipVia);
+            return View(vmEdit);
         }
 
         // GET: Orders/Delete/5
